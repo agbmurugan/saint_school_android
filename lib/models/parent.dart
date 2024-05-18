@@ -16,6 +16,7 @@ class Parent extends Bio {
     primaryPhone,
     secondaryPhone,
     state,
+    isActive,
     password,
     this.uid,
   }) : super(
@@ -33,6 +34,7 @@ class Parent extends Bio {
           primaryPhone: primaryPhone,
           secondaryPhone: secondaryPhone,
           state: state,
+          isActive:isActive,
         );
 
   List<String> children;
@@ -56,6 +58,7 @@ class Parent extends Bio {
     lastName = parent.lastName;
     primaryPhone = parent.primaryPhone;
     secondaryPhone = parent.secondaryPhone;
+    isActive = parent.isActive;
   }
 
   factory Parent.fromJson(Map<String, dynamic> json) => Parent(
@@ -74,7 +77,8 @@ class Parent extends Bio {
         lastName: json["lastName"],
         primaryPhone: json["primaryPhone"],
         secondaryPhone: json["secondaryPhone"],
-        password: json["password"]
+        password: json["password"],
+        isActive: json["isActive"]
       );
 
   Map<String, dynamic> toJson() {
