@@ -6,7 +6,7 @@ import 'bio_form_controller.dart';
 
 enum Provide { network, memory, logo }
 
-class ParentFormController with BioFormController {
+class ParentFormController extends BioFormController {
   ParentFormController();
   List<TextEditingController> children = [];
   EntityType entityType = EntityType.parent;
@@ -52,7 +52,8 @@ class ParentFormController with BioFormController {
     gender = parent.gender;
     primaryPhone.text = parent.primaryPhone ?? '';
     secondaryPhone.text = parent.secondaryPhone ?? '';
-    children = parent.children.map((e) => TextEditingController(text: e)).toList();
+    children =
+        parent.children.map((e) => TextEditingController(text: e)).toList();
     uid = parent.uid;
   }
 
@@ -70,7 +71,8 @@ class ParentFormController with BioFormController {
     controller.gender = parent.gender;
     controller.primaryPhone.text = parent.primaryPhone ?? '';
     controller.secondaryPhone.text = parent.secondaryPhone ?? '';
-    controller.children = parent.children.map((e) => TextEditingController(text: e)).toList();
+    controller.children =
+        parent.children.map((e) => TextEditingController(text: e)).toList();
     controller.uid = parent.uid;
     return controller;
   }
