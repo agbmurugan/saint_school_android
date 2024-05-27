@@ -21,6 +21,7 @@ class Student extends Bio {
     String? primaryPhone,
     String? secondaryPhone,
     String? state,
+    bool? IsActive,
   }) : super(
           name: name,
           email: email,
@@ -36,6 +37,7 @@ class Student extends Bio {
           primaryPhone: primaryPhone,
           secondaryPhone: secondaryPhone,
           state: state,
+          isActive: IsActive
         );
 
   String studentClass;
@@ -61,27 +63,27 @@ class Student extends Bio {
 
   Bio get bio => this;
   factory Student.fromJson(Map<String, dynamic> json) => Student(
-        icNumber: json["ic"],
-        name: json["name"],
-        email: json["email"] ?? '',
-        gender: json["gender"] == null ? Gender.male : Gender.values.elementAt(json["gender"]),
-        address: json["address"],
-        addressLine1: json["addressLine1"],
-        addressLine2: json["addressLine2"],
-        city: json["city"],
-        imageUrl: json["imageUrl"],
-        lastName: json["lastName"],
-        primaryPhone: json["primaryPhone"],
-        secondaryPhone: json["secondaryPhone"],
-        state: json["state"],
-        //-------------------------------------------
-        father: json["father"] != null ? Parent.fromJson(json['father']) : null,
-        guardian: json["guardian"] != null ? Parent.fromJson(json['guardian']) : null,
-        mother: json["mother"] != null ? Parent.fromJson(json['mother']) : null,
-        //-------------------------------------------
-        studentClass: json["class"],
-        section: json["section"],
-      );
+  icNumber: json["icNumber"] ?? '', // provide a default empty string
+  name: json["name"] ?? '', // provide a default empty string
+  email: json["email"] ?? '', // provide a default empty string
+  gender: json["gender"] == null ? Gender.male : Gender.values.elementAt(json["gender"]),
+  address: json["address"] ?? '', // provide a default empty string
+  addressLine1: json["addressLine1"] ?? '', // provide a default empty string
+  addressLine2: json["addressLine2"] ?? '', // provide a default empty string
+  city: json["city"] ?? '', // provide a default empty string
+  imageUrl: json["imageUrl"] ?? '', // provide a default empty string
+  lastName: json["lastName"] ?? '', // provide a default empty string
+  primaryPhone: json["primaryPhone"] ?? '', // provide a default empty string
+  secondaryPhone: json["secondaryPhone"] ?? '', // provide a default empty string
+  state: json["state"] ?? '', // provide a default empty string
+  father: json["father"] != null ? Parent.fromJson(json['father']) : null,
+  guardian: json["guardian"] != null ? Parent.fromJson(json['guardian']) : null,
+  mother: json["mother"] != null ? Parent.fromJson(json['mother']) : null,
+  studentClass: json["studentClass"] ?? '', // provide a default empty string
+  section: json["section"] ?? '', // provide a default empty string
+  IsActive: json["isActive"] ?? true // provide a default true value
+);
+
 
   Map<String, dynamic> toJson() => {
         "ic": icNumber,
@@ -109,5 +111,6 @@ class Student extends Bio {
         "section": section,
         //------------
         "parents": parents,
+        "isActive":isActive
       };
 }

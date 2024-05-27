@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:saint_schoolparent_pro/controllers/parent.dart';
 import 'package:saint_schoolparent_pro/models/parent.dart';
-import 'package:saint_schoolparent_pro/models/student.dart';
 import 'package:saint_schoolparent_pro/screens/registrationpage.dart';
 import 'package:saint_schoolparent_pro/theme.dart';
 
@@ -14,6 +14,7 @@ class VerificationPage extends StatefulWidget {
 
 class _VerificationPageState extends State<VerificationPage> {
   final icNumberController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase Auth instance
 
   @override
   Widget build(BuildContext context) {
@@ -38,57 +39,57 @@ class _VerificationPageState extends State<VerificationPage> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: getHeight(context) * 0.10),
-            child: ElevatedButton(
-                style: ButtonStyle(
-                    elevation: MaterialStateProperty.all(16),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(100.0)),
-                    )),
-                onPressed: () async {
-                  var parent = ParentController.getParent(icNumberController.text);
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return FutureBuilder<Parent>(
-                        future: parent,
-                        builder: (BuildContext context, AsyncSnapshot<Parent> snapshot) {
-                          if (snapshot.connectionState == ConnectionState.active || snapshot.connectionState == ConnectionState.done) {
-                            if (snapshot.hasData) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RegistrationPage(
-                                              parent: snapshot.data!,
-                                            )));
-                              });
-                            } else {
-                              return const Text("There is no related student data");
-                            }
-                          }
-                          if (snapshot.hasError) {
-                            return Text(snapshot.error.toString());
-                          }
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        },
-                      );
-                    },
-                  );
-                  // Get.to(() => const RegistrationPage());
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: getWidth(context) * 0.15, vertical: getHeight(context) * 0.02),
-                  child: const Text('Verify'),
-                )),
-          ),
+  padding: EdgeInsets.symmetric(vertical: getHeight(context) * 0.10),
+  child: ElevatedButton(
+    style: ButtonStyle(
+      elevation: MaterialStateProperty.all(16),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(100.0)),
+      ),
+    ),
+    onPressed: () async {
+      var result = await ParentController.getParent(icNumberController.text);
+
+      if (result is Parent) {
+        Parent parent = result;
+        _auth.fetchSignInMethodsForEmail(parent.email).then((methods) {
+          if (methods.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("This IC Number is already registered."),
+              backgroundColor: Colors.red,
+            ));
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => RegistrationPage(parent: parent)),
+            );
+          }
+        }).catchError((e) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("Failed to check email: ${e.message}"),
+            backgroundColor: Colors.red,
+          ));
+        });
+      } else if (result is String) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(result),
+          backgroundColor: Colors.red,
+        ));
+      }
+    },
+    child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: getWidth(context) * 0.15, vertical: getHeight(context) * 0.02),
+      child: const Text('Verify'),
+    ),
+  ),
+)
+
         ],
       ),
     ));
   }
 }
+
 
 class CustomTextformField extends StatelessWidget {
   const CustomTextformField({
