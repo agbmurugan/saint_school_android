@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:saint_schoolparent_pro/controllers/auth.dart';
@@ -279,71 +281,81 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(100.0)),
                       )),
-                      onPressed: () {
-                        // Validate returns true if the form is valid, or false otherwise.
-
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // If the form is valid, display a snackbar. In the real world,
-                          // you'd often call a server or save the information in a database.
+                          // Showing a loading dialog or similar user feedback might be beneficial here
+                       // Implement this method to show a loading indicator
 
-                          var parent = controller.parent;
-                          // print(parent.toJson());
-                          if (parent != null) {
-                            auth
-                                .createUserWithEmailAndPassword(
-                                    controller.email.text,
-                                    passwordController.text)
-                                .then((value) {
-                              if (value?.uid != null) {
-                                parent.uid = value!.uid;
-                                ParentController.registerParent(parent)
-                                    .then((_) {
-                                  // Add password to parent document after successful registration
-                                  ParentController.addPasswordToParent(
-                                          parent.icNumber,
-                                          passwordController.text)
-                                      .then((_) {
-                                    Get.offAll(() => const LandingPage());
-                                  }).catchError((error) {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: const Text("Error occurred"),
-                                          content: Text(error.toString()),
-                                        );
-                                      },
-                                    );
-                                  });
-                                }).catchError((error) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text("Error occurred"),
-                                        content: Text(error.toString()),
-                                      );
-                                    },
-                                  );
-                                });
-                              }
-                            }).catchError((error) {
+                          try {
+                            var userSnapshot = await FirebaseFirestore.instance
+                                .collection('parents')
+                                .where('email',
+                                    isEqualTo: controller.email.text.trim())
+                                .limit(1)
+                                .get();
+
+                            if (userSnapshot.docs.isEmpty) {
+                              // Close the loading dialog before showing the alert dialog
+                              Navigator.pop(context);
                               showDialog(
                                 context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Error occurred"),
-                                    content: Text(error.toString()),
-                                  );
-                                },
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Registration Failed"),
+                                  content: const Text(
+                                      'No account found with that email.'),
+                                ),
                               );
-                            });
-                          }
+                              return;
+                            }
 
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   const SnackBar(content: Text('Registred Successfully')),
-                          // );
-                          // Get.to(() => const BottomRouter());
+                            var userData = userSnapshot.docs.first.data();
+                            print("userData $userData");
+                            if (userData['isActive'] != true) {
+                              Navigator.pop(context); // Close loading dialog
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Registration Failed"),
+                                  content: const Text(
+                                      'Your account is inactive. Please contact support.'),
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Proceed with creating the Firebase Auth user if the parent is active
+                            var result = await FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                              email: controller.email.text.trim(),
+                              password: passwordController.text,
+                            );
+
+                            if (result.user != null) {
+                              await FirebaseFirestore.instance
+                                  .collection('parents')
+                                  .doc(userSnapshot.docs.first.id)
+                                  .update({
+                                'uid': result.user!
+                                    .uid, // Update the document with the new user's UID
+                                'isActive':
+                                    true, // Optionally ensure the field is set to true again
+                              });
+
+                              Navigator.pop(context); // Close loading dialog
+                              Get.offAll(() =>
+                                  const LandingPage()); // Navigate to the landing page
+                            }
+                          } catch (e) {
+                            Navigator.pop(
+                                context); // Ensure to close the loading dialog in case of error
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Registration Error"),
+                                content: Text(e.toString()),
+                              ),
+                            );
+                          }
                         }
                       },
                       child: Padding(

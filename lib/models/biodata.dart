@@ -14,6 +14,7 @@ class Bio {
     this.primaryPhone,
     this.secondaryPhone,
     this.state,
+    this.isActive,
   });
 
   String name;
@@ -30,6 +31,7 @@ class Bio {
   String? secondaryPhone;
   String? imageUrl;
   Gender gender;
+  bool? isActive;
 
   @override
   // ignore: hash_and_equals
@@ -89,7 +91,8 @@ class Bio {
         "secondaryPhone": secondaryPhone,
         "imageUrl": imageUrl,
         "gender": gender.index,
-        "search": search
+        "search": search,
+        "isActive":isActive,
       };
 }
 

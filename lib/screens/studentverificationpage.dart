@@ -51,7 +51,9 @@ class _StudentverificationState extends State<Studentverification> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: getWidth(context) * 0.02, vertical: getHeight(context) * 0.02),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: getWidth(context) * 0.02,
+                      vertical: getHeight(context) * 0.02),
                   child: CustomTextformField(
                     prefixIcon: const Icon(Icons.perm_contact_cal),
                     controller: studenIc,
@@ -59,64 +61,78 @@ class _StudentverificationState extends State<Studentverification> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: getHeight(context) * 0.10),
+                  padding:
+                      EdgeInsets.symmetric(vertical: getHeight(context) * 0.10),
                   child: ElevatedButton(
                       style: ButtonStyle(
                           shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(100.0)),
+                        RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100.0)),
                       )),
                       onPressed: () {
                         // Validate returns true if the form is valid, or false otherwise.
                         if (_formKey.currentState!.validate()) {
-                          var result = parentController.verifyChild(studenIc.text);
+                          var result =
+                              parentController.verifyChild(studenIc.text);
                           showDialog(
-                              context: context,
-                              builder: (context) {
-                                return FutureBuilder<bool>(
-                                  future: result,
-                                  builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.active || snapshot.connectionState == ConnectionState.done) {
-                                      var value = snapshot.data;
-                                      if (value ?? false) {
-                                        return AlertDialog(
-                                          title: const Text("Student Added Successfully"),
-                                          actions: [
-                                            TextButton(
-                                                onPressed: () {
-                                                  Get.offAll(() => const LandingPage());
-                                                },
-                                                child: const Text("Okay")),
-                                          ],
-                                        );
-                                      } else {
-                                        return AlertDialog(
-                                          title: const Text("Student Could not be added"),
-                                          actions: [
-                                            TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                child: const Text("Okay")),
-                                          ],
-                                        );
-                                      }
-                                    }
-
-                                    if (snapshot.hasError) {
-                                      return Center(
-                                        child: Text(snapshot.error.toString()),
+                            context: context,
+                            builder: (context) {
+                              return FutureBuilder<String>(
+                                future: result,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<String> snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.active ||
+                                      snapshot.connectionState ==
+                                          ConnectionState.done) {
+                                    if (snapshot.hasData) {
+                                      var message = snapshot.data!;
+                                      return AlertDialog(
+                                        title: Text(message),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              if (message ==
+                                                  "Student Added Successfully") {
+                                                Get.offAll(
+                                                    () => const LandingPage());
+                                              } else {
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                            child: const Text("Okay"),
+                                          ),
+                                        ],
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return AlertDialog(
+                                        title: const Text("Error"),
+                                        content:
+                                            Text(snapshot.error.toString()),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("Okay"),
+                                          ),
+                                        ],
                                       );
                                     }
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                );
-                              });
+                                  }
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                },
+                              );
+                            },
+                          );
                         }
                       },
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: getWidth(context) * 0.15, vertical: getHeight(context) * 0.02),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: getWidth(context) * 0.15,
+                            vertical: getHeight(context) * 0.02),
                         child: const Text('Verify'),
                       )),
                 )

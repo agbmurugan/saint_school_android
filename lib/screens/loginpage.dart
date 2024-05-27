@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saint_schoolparent_pro/controllers/auth.dart';
 import '../theme.dart';
 import 'ic_verification_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -19,6 +21,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final email = TextEditingController();
   final password = TextEditingController();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
 
   @override
   void initState() {
@@ -189,29 +193,52 @@ class _LoginPageState extends State<LoginPage> {
               padding:
                   EdgeInsets.symmetric(vertical: getHeight(context) * 0.10),
               child: ElevatedButton(
-                  style: ButtonStyle(
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100.0)),
-                    ),
-                  ),
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      try {
-                        await auth.signInWithEmailAndPassword(
+    style: ButtonStyle(
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(100.0)),
+      ),
+    ),
+    onPressed: () async {
+      if (_formKey.currentState!.validate()) {
+        try {
+          // Check if the parent is active
+          var userSnapshot = await FirebaseFirestore.instance
+              .collection('parents')
+              .where('email', isEqualTo: email.text.trim()) // Ensure the email is correctly formatted
+              .limit(1)
+              .get();
+
+          if (userSnapshot.docs.isEmpty) {
+            _showErrorDialog('No user found with that email.');
+            return;
+          }
+
+          var userData = userSnapshot.docs.first.data();
+          if (userData['isActive'] != true) {
+            _showErrorDialog('Your account is inactive. Please contact support.');
+            return;
+          }
+
+          // Proceed with authentication if active
+            await auth.signInWithEmailAndPassword(
                             email.text, password.text);
-                        // Navigate to the next page or show success message
-                      } catch (e) {
-                        _showErrorDialog(e.toString());
-                      }
-                    }
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: getWidth(context) * 0.15,
-                        vertical: getHeight(context) * 0.02),
-                    child: const Text('Login'),
-                  )),
+
+          // Navigate to the next page or show success message
+          // Navigator.pushReplacementNamed(context, '/homePage');  // Adjust as necessary
+
+        } catch (e) {
+          _showErrorDialog(e.toString());
+        }
+      }
+    },
+    child: Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: getWidth(context) * 0.15,
+          vertical: getHeight(context) * 0.02),
+      child: const Text('Login'),
+    )),
+
             )
           ],
         ),
